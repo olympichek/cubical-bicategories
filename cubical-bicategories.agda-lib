@@ -1,0 +1,4 @@
+name: cubical-bicategories
+include: src
+depend: cubical-0.9
+flags: --safe --cubical --guardedness
