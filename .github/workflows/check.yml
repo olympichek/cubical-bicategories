@@ -1,0 +1,68 @@
+name: Typecheck and GitHub Pages
+on: [push, pull_request, workflow_dispatch]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  agda:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: cubical-bicategories
+      - uses: actions/checkout@v4
+        with:
+          repository: agda/cubical
+          ref: c37782bb4e382dc41035e0970409a0c17b55e6ce
+          path: cubical
+      - uses: actions/checkout@v4
+        with:
+          repository: agda/agda
+          ref: v2.9.0
+          path: agda
+      - uses: haskell-actions/setup@v2
+        with:
+          ghc-version: '9.10.2'
+          cabal-version: '3.12.1.0'
+      - name: Install Agda and register Cubical
+        working-directory: agda
+        env:
+          AGDA_DIR: ${{ runner.temp }}/agda-config
+        run: |
+          cabal update
+          cabal install exe:agda --installdir="$HOME/.local/bin"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          mkdir -p "$AGDA_DIR"
+          printf '%s\n' "$GITHUB_WORKSPACE/cubical/cubical.agda-lib" > "$AGDA_DIR/libraries"
+          echo "AGDA_DIR=$AGDA_DIR" >> "$GITHUB_ENV"
+      - name: Typecheck library and build documentation
+        working-directory: cubical-bicategories
+        run: |
+          agda --version
+          sudo apt-get update
+          sudo apt-get install -y pandoc
+          python3 docs/build.py
+      - uses: actions/upload-pages-artifact@v4
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        with:
+          path: cubical-bicategories/_build/html
+
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: agda
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy documentation
+        id: deployment
+        uses: actions/deploy-pages@v4
