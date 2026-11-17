@@ -87,8 +87,9 @@ def build(library_file):
         for name in modules:
             if not (site / f"{name}.html").is_file():
                 raise SystemExit(f"Missing documentation for {name}; check Bicategories.Everything imports.")
-        render((ROOT / "README.md").read_text(encoding="utf-8"), "Cubical Bicategories",
-               site / "index.html", Path("README.md"))
+        index = DOCS / "index.md"
+        render(index.read_text(encoding="utf-8"), "Cubical Bicategories",
+               site / "index.html", index.relative_to(ROOT))
         render(module_index(modules), "Module index", site / "modules.html")
 
         # Only replace the previous preview after all pages render successfully.

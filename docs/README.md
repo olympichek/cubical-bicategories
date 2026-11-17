@@ -1,6 +1,6 @@
 # Building the documentation
 
-The site uses Agda’s HTML backend and Pandoc. With the project’s dependencies registered, run these commands from the repository root.
+The site uses Agda’s HTML backend and Pandoc. Its landing page lives in [index.md](index.md). The [repository README](../README.md) uses the math syntax supported by GitHub. With the project’s dependencies registered, run these commands from the repository root.
 
 ```sh
 python3 docs/build.py

@@ -34,12 +34,3 @@ function Link(link)
   link.target = name:gsub("/", ".") .. ".html" .. fragment
   return link
 end
-
--- The repository's link to the rendered site is redundant on the site itself.
-function Para(paragraph)
-  if os.getenv("AGDA_DOC_SOURCE") ~= "README.md" or #paragraph.content ~= 1 then return end
-  local link = paragraph.content[1]
-  if link.t == "Link" and pandoc.utils.stringify(link) == "Rendered documentation" then
-    return {}
-  end
-end
