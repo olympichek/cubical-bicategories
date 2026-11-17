@@ -10,40 +10,31 @@ concurrency:
 
 jobs:
   agda:
-    runs-on: ubuntu-latest
+    name: Agda 2.9.0
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: cubical-bicategories
-      - uses: actions/checkout@v4
+          persist-credentials: false
+      - name: Check out Cubical
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: agda/cubical
           ref: c37782bb4e382dc41035e0970409a0c17b55e6ce
           path: cubical
-      - uses: actions/checkout@v4
+          persist-credentials: false
+      - name: Install Agda
+        uses: agda/agda-setup-action@c931d59d76a036d1bed9f322cc12cc105bda7881 # v1
         with:
-          repository: agda/agda
-          ref: v2.9.0
-          path: agda
-      - uses: haskell-actions/setup@v2
-        with:
-          ghc-version: '9.10.2'
-          cabal-version: '3.12.1.0'
-      - name: Install Agda and register Cubical
-        working-directory: agda
-        env:
-          AGDA_DIR: ${{ runner.temp }}/agda-config
-        run: |
-          cabal update
-          cabal install exe:agda --installdir="$HOME/.local/bin"
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-          mkdir -p "$AGDA_DIR"
-          printf '%s\n' "$GITHUB_WORKSPACE/cubical/cubical.agda-lib" > "$AGDA_DIR/libraries"
-          echo "AGDA_DIR=$AGDA_DIR" >> "$GITHUB_ENV"
+          agda-version: '2.9.0'
+      - name: Register Cubical
+        run: printf '%s\n' "$GITHUB_WORKSPACE/cubical/cubical.agda-lib" >> "$AGDA_DIR/libraries"
       - name: Typecheck library and build documentation
         working-directory: cubical-bicategories
         run: |
-          agda --version
           sudo apt-get update
           sudo apt-get install -y pandoc
           python3 docs/build.py
