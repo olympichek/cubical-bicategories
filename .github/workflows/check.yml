@@ -13,6 +13,9 @@ jobs:
     name: Agda 2.9.0
     runs-on: ubuntu-24.04
     timeout-minutes: 90
+    env:
+      AGDA_VERSION: '2.9.0'
+      CUBICAL_REVISION: c37782bb4e382dc41035e0970409a0c17b55e6ce
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -23,15 +26,29 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: agda/cubical
-          ref: c37782bb4e382dc41035e0970409a0c17b55e6ce
+          ref: ${{ env.CUBICAL_REVISION }}
           path: cubical
           persist-credentials: false
       - name: Install Agda
         uses: agda/agda-setup-action@c931d59d76a036d1bed9f322cc12cc105bda7881 # v1
         with:
-          agda-version: '2.9.0'
+          agda-version: ${{ env.AGDA_VERSION }}
       - name: Register Cubical
-        run: printf '%s\n' "$GITHUB_WORKSPACE/cubical/cubical.agda-lib" >> "$AGDA_DIR/libraries"
+        id: libraries
+        run: |
+          printf '%s\n' "$GITHUB_WORKSPACE/cubical/cubical.agda-lib" >> "$AGDA_DIR/libraries"
+          echo "data-dir=$(agda --print-agda-data-dir)" >> "$GITHUB_OUTPUT"
+      - name: Cache Agda interfaces
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        env:
+          CACHE_PREFIX: agda-${{ runner.os }}-${{ runner.arch }}-${{ env.AGDA_VERSION }}-${{ env.CUBICAL_REVISION }}-${{ hashFiles('cubical-bicategories/*.agda-lib') }}
+        with:
+          path: |
+            cubical-bicategories/_build/${{ env.AGDA_VERSION }}/agda/src
+            cubical/_build/${{ env.AGDA_VERSION }}/agda
+            ${{ steps.libraries.outputs.data-dir }}/lib/prim/_build
+          key: ${{ env.CACHE_PREFIX }}-${{ hashFiles('cubical-bicategories/src/**') }}
+          restore-keys: ${{ env.CACHE_PREFIX }}-
       - name: Typecheck library and build documentation
         working-directory: cubical-bicategories
         run: |

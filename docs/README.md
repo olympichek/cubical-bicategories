@@ -20,3 +20,5 @@ Use LaTeX for mathematical notation in prose, including single variables. Write 
 ## Publishing
 
 On GitHub, select **GitHub Actions** under **Settings → Pages → Source**. CI builds the documentation on pull requests, and successful builds on `main` publish it to [GitHub Pages](https://olympichek.github.io/cubical-bicategories/).
+
+CI caches Agda’s checked modules for the project, Cubical, and Agda’s builtins. Once the cache is warm, changes to the README, this site’s index, or its assets reuse those checks and regenerate the site. Agda also tracks the prose in literate modules, so an edit to a `.lagda.md` file rechecks that module and its dependents, keeping the highlighted source links in sync.
