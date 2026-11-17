@@ -69,7 +69,7 @@ def build(library_file):
         site.mkdir()
         shutil.copyfile(highlighted / "Agda.css", site / "Agda.css")
         shutil.copyfile(ROOT / "LICENSE", site / "project-license.txt")
-        for asset in ("reading.css", "reasoning.js", "dependency-licenses.txt"):
+        for asset in ("reading.css", "dependency-licenses.txt"):
             shutil.copyfile(DOCS / asset, site / asset)
 
         for path in sorted(highlighted.iterdir()):
